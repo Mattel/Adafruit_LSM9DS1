@@ -12,7 +12,7 @@
   Written by Kevin Townsend for Adafruit Industries.  
   BSD license, all text above must be included in any redistribution
  ***************************************************************************/
-#include <Adafruit_LSM9DS1.h>
+#include "Adafruit_LSM9DS1.h"
 
 /***************************************************************************
  CONSTRUCTOR
@@ -578,6 +578,10 @@ void Adafruit_LSM9DS1::getGyroSensor(sensor_t* sensor) {
   sensor->resolution  = 0.0;  // ToDo
 }
 
+void Adafruit_LSM9DS1::getGyroString(char* buf){
+    sprintf(buf, "X: %f Y: %f Z: %f", this->gyroData.x, this->gyroData.y, this->gyroData.z);
+}
+
 void Adafruit_LSM9DS1::getTempSensor(sensor_t* sensor) {
   memset(sensor, 0, sizeof(sensor_t));
   strncpy (sensor->name, "LSM9DS1_T", sizeof(sensor->name) - 1);
@@ -589,4 +593,29 @@ void Adafruit_LSM9DS1::getTempSensor(sensor_t* sensor) {
   sensor->max_value   = 0.0;  // ToDo
   sensor->min_value   = 0.0;  // ToDo
   sensor->resolution  = 0.0;  // ToDo
+}
+
+// For waking on IMU motion
+void Adafruit_LSM9DS1::enableInterruptOnAxis(bool x, bool y, bool z){
+    // TODO: Add customizable threshold
+    byte threshold_L = 0b00111111; // low bits
+    byte threshold_H = 0b00000000; // high bits
+
+    this->write8(XGTYPE, INT_GEN_THS_X_G_LOW, threshold_L);
+    this->write8(XGTYPE, INT_GEN_THS_X_G_HIGH, threshold_H);
+    this->write8(XGTYPE, INT_GEN_THS_Y_G_LOW, threshold_L);
+    this->write8(XGTYPE, INT_GEN_THS_Y_G_HIGH, threshold_H);
+    this->write8(XGTYPE, INT_GEN_THS_Z_G_LOW, threshold_L);
+    this->write8(XGTYPE, INT_GEN_THS_Z_G_HIGH, threshold_H);
+
+    // Enable gyro interrupt on INT1 pin
+    this->write8(XGTYPE, INT1_CTRL, 0b10000000);
+
+    // Enable interrupt axes. (2nd bit for X axis, 4th bit for Y axis, 6th bit for Z)
+    byte enable_axis = 0b00000000;
+    if(x) enable_axis |= 0b00000010;
+    if(y) enable_axis |= 0b00001000;
+    if(z) enable_axis |= 0b00100000;
+
+    this->write8(XGTYPE, INT_GEN_CFG_G, enable_axis);
 }

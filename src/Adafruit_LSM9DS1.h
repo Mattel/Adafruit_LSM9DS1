@@ -15,11 +15,11 @@
 #ifndef __LSM9DS1_H__
 #define __LSM9DS1_H__
 
-#if (ARDUINO >= 100)
+//#if (ARDUINO >= 100)
  #include "Arduino.h"
-#else
- #include "WProgram.h"
-#endif
+//#else
+// #include "WProgram.h"
+//#endif
 #include "Wire.h"
 #include <SPI.h>
 #include <Adafruit_Sensor.h>
@@ -72,6 +72,8 @@ class Adafruit_LSM9DS1
     
     void initI2C( TwoWire* wireBus, int32_t sensorID );
 
+    void getGyroString(char* buf);
+    void enableInterruptOnAxis( bool x, bool y, bool z);
 
     typedef enum
     {
@@ -102,6 +104,24 @@ class Adafruit_LSM9DS1
       LSM9DS1_REGISTER_OUT_Y_H_XL          = 0x2B,
       LSM9DS1_REGISTER_OUT_Z_L_XL          = 0x2C,
       LSM9DS1_REGISTER_OUT_Z_H_XL          = 0x2D,
+
+        // Accel interrupt config
+        INT_GEN_CFG_XL = 0x06,
+        INT_GEN_THS_X_XL = 0x07,
+        INT_GEN_THS_Y_XL = 0x08,
+        INT_GEN_THS_Z_XL = 0x09,
+
+        // Gyro interrupt config
+        INT_GEN_CFG_G = 0x30,
+        INT_GEN_THS_X_G_LOW = 0x31,
+        INT_GEN_THS_X_G_HIGH = 0x32,
+        INT_GEN_THS_Y_G_LOW = 0x33,
+        INT_GEN_THS_Y_G_HIGH = 0x34,
+        INT_GEN_THS_Z_G_LOW = 0x35,
+        INT_GEN_THS_Z_G_HIGH = 0x36,
+
+        STATUS_REG = 0x17,
+        INT1_CTRL = 0x0C,
 
     } lsm9ds1AccGyroRegisters_t;
   
@@ -227,6 +247,7 @@ class Adafruit_LSM9DS1
         (_parent->*_readFunc)();
         /* Fill in event data. */
         (_parent->*_eventFunc)(event, millis());
+        return true;
       }
       virtual void getSensor(sensor_t* sensor) {
         /* Fill in sensor metadata. */
@@ -274,7 +295,6 @@ class Adafruit_LSM9DS1
     void getMagSensor   ( sensor_t* sensor );
     void getGyroSensor  ( sensor_t* sensor );
     void getTempSensor  ( sensor_t* sensor );
-
 };
 
 #endif
